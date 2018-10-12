@@ -64,7 +64,12 @@ window.Transforms_Sandbox = window.classes.Transforms_Sandbox = class Transforms
             .times( Mat4.scale([ 1, 2, 1 ]) );
 
     /* Draw */
-    this.shapes.box.draw( graphics_state, top_box_transform, this.plastic.override({ color: yellow }) );
+    for (let i = 0; i < 10; i++) {
+      for (let j = 0; j < 10; j++) {
+        let balls_out = top_box_transform.times( Mat4.translation([5*i, 5*j, 0]));
+        this.shapes.box.draw( graphics_state, balls_out, this.plastic.override({ color: Color.of( j/10,i/10,0,1 ) }) ); 
+      }
+    }
     this.shapes.ball.draw( graphics_state, ball_transform, this.plastic.override({ color: blue }) );
     this.shapes.box.draw( graphics_state, bottom_box_transform, this.plastic.override({ color: yellow }) );
   }
