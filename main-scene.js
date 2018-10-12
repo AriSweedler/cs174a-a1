@@ -1,4 +1,4 @@
-/* Here's a complete, working example of a Shape subclass.  It is a blueprint for a cube. */
+/* Here's a complete, working example of a Shape subclass. It is a blueprint for a cube. */
 window.Cube = window.classes.Cube = class Cube extends Shape
 {
   constructor()
@@ -29,6 +29,98 @@ window.Cube = window.classes.Cube = class Cube extends Shape
   }
 }
 
+/* draw just the outline of a cube */
+window.Cube_Outline = window.classes.Cube_Outline = class Cube_Outline extends Shape
+{
+  constructor()
+  {
+    /* Name the values we'll define per each vertex. */
+    super( "positions", "colors" );
+
+    /* Do this so we won't need to define "this.indices". */
+    this.indexed = false;
+
+    /* each pair of vertices will be drawn as a line segment. We want a line for each corner of the cube */
+    let corners = Array(8);
+    for (let i = 0; i < corners.length; i++) {
+      corners[i] = new Vec([
+          i&1 ? -1 : 1,
+          i&2 ? -1 : 1,
+          i&4 ? -1 : 1,
+      ]);
+    }
+
+    this.positions.push(
+        corners[0], corners[1],
+        corners[0], corners[2],
+        corners[0], corners[4],
+        corners[1], corners[3],
+        corners[1], corners[5],
+        corners[2], corners[3],
+        corners[2], corners[6],
+        corners[3], corners[7],
+        corners[4], corners[5],
+        corners[4], corners[6],
+        corners[5], corners[7],
+        corners[6], corners[7]
+        );
+
+    /* for each item in the this.positions array, add a whiteColor to the this.colors array */
+    let whiteColor = Color.of(1, 1, 1, 1);
+    this.colors = this.positions.map(i => whiteColor);
+  }
+}
+
+/* draw a cube using triangles instead of squares */
+window.Cube_Single_Strip = window.classes.Cube_Single_Strip = class Cube_Single_Strip extends Shape
+{
+  constructor()
+  {
+    super( "positions", "normals" );
+
+    /* Do this so we won't need to define "this.indices". */
+    this.indexed = false;
+
+    /* each triplet of vertices will be drawn as a triangle. We want a pair of triangles for each face of the cube */
+    let corners = Array(8);
+    for (let i = 0; i < corners.length; i++) {
+      corners[i] = new Vec([
+          i&1 ? -1 : 1,
+          i&2 ? -1 : 1,
+          i&4 ? -1 : 1,
+      ]);
+    }
+
+    let norm_face = Vec.cast([1,0,0], [0,1,0], [0,0,1], [-1,0,0], [0,-1,0], [0,0,-1]);
+    this.positions.push(
+        corners[0], corners[6], corners[2],
+        corners[0], corners[6], corners[4],
+
+        corners[0], corners[5], corners[1],
+        corners[0], corners[5], corners[4],
+
+        corners[0], corners[3], corners[1],
+        corners[0], corners[3], corners[2],
+
+        corners[7], corners[1], corners[3],
+        corners[7], corners[1], corners[5],
+
+        corners[7], corners[2], corners[3],
+        corners[7], corners[2], corners[6],
+
+        corners[7], corners[4], corners[5],
+        corners[7], corners[4], corners[6],
+        );
+
+    for (let face = 0; face < 6; face++) {
+      for (let v = 0; v < 6; v++) {
+        this.normals.push(norm_face[face]);
+      }
+    }
+  }
+}
+
+/* example scene given to us by prof */
 window.Transforms_Sandbox = window.classes.Transforms_Sandbox = class Transforms_Sandbox extends Tutorial_Animation
 {
   /* This subclass of some other Scene overrides the display() function.  By only exposing that one function, which
@@ -82,110 +174,7 @@ window.Transforms_Sandbox = window.classes.Transforms_Sandbox = class Transforms
   }
 }
 
-window.Cube_Outline = window.classes.Cube_Outline = class Cube_Outline extends Shape
-{
-  constructor()
-  {
-    /* Name the values we'll define per each vertex. */
-    super( "positions", "colors" );
-
-    /* Do this so we won't need to define "this.indices". */
-    this.indexed = false;
-
-    /* each pair of vertices will be drawn as a line segment. We want a line for each corner of the cube */
-    let corners = Array(8);
-    for (let i = 0; i < corners.length; i++) {
-      corners[i] = new Vec([
-          i&1 ? -1 : 1,
-          i&2 ? -1 : 1,
-          i&4 ? -1 : 1,
-      ]);
-    }
-
-    this.positions.push(
-        corners[0], corners[1],
-        corners[0], corners[2],
-        corners[0], corners[4],
-        corners[1], corners[3],
-        corners[1], corners[5],
-        corners[2], corners[3],
-        corners[2], corners[6],
-        corners[3], corners[7],
-        corners[4], corners[5],
-        corners[4], corners[6],
-        corners[5], corners[7],
-        corners[6], corners[7]
-        );
-
-    /* for each item in the this.positions array, add a whiteColor to the this.colors array */
-    let whiteColor = Color.of(1, 1, 1, 1);
-    this.colors = this.positions.map(i => whiteColor);
-  }
-
-}
-
-window.Cube_Single_Strip = window.classes.Cube_Single_Strip = class Cube_Single_Strip extends Shape
-{
-  constructor()
-  {
-    super( "positions", "normals" );
-
-    /* each pair of vertices will be drawn as a line segment. We want a line for each corner of the cube */
-    let corners = Array(8);
-    for (let i = 0; i < corners.length; i++) {
-      corners[i] = new Vec([
-          i&1 ? -1 : 1,
-          i&2 ? -1 : 1,
-          i&4 ? -1 : 1,
-      ]);
-    }
-
-    let norm_face = Vec.cast([1,0,0], [0,1,0], [0,0,1], [-1,0,0], [0,-1,0], [0,0,-1]);
-    this.positions.push(
-        corners[0], corners[6], corners[2],
-        corners[0], corners[6], corners[4],
-
-        corners[0], corners[5], corners[1],
-        corners[0], corners[5], corners[4],
-
-        corners[0], corners[3], corners[1],
-        corners[0], corners[3], corners[2],
-
-        corners[7], corners[1], corners[3],
-        corners[7], corners[1], corners[5],
-
-        corners[7], corners[2], corners[3],
-        corners[7], corners[2], corners[6],
-
-        corners[7], corners[4], corners[5],
-        corners[7], corners[4], corners[6],
-        );
-
-    for (let face = 0; face < 6; face++) {
-      for (let v = 0; v < 6; v++) {
-        this.normals.push(norm_face[face]);
-      }
-    }
-
-    /* Those two lists, positions and normals, fully describe the "vertices".  What's the "i"th vertex?  Simply the
-     * combined data you get if you look up index "i" of both lists above -- a position and a normal vector, together.
-     * Now let's tell it how to connect vertex entries into triangles.  Every three indices in this list makes one
-     * triangle: */
-    //     this.indices.push( 0, 1, 2, 1, 3, 2, 4, 5, 6, 5, 7, 6, 8, 9, 10, 9, 11, 10, 12, 13, 14, 13, 15, 14, 16, 17, 18, 17,
-    //         19, 18, 20, 21, 22, 21, 23, 22 );
-    /* It stinks to manage arrays this big.  Later we'll show code that generates these same cube vertices more
-     * automatically. */
-
-    /* Do this so we won't need to define "this.indices". */
-    this.indexed = false;
-
-
-
-  }
-
-}
-
-/* The scene begins by requesting the camera, shapes, and materials it will need. */
+/* my scene */
 window.Assignment_One_Scene = window.classes.Assignment_One_Scene = class Assignment_One_Scene extends Scene_Component
 {
   /* First, include a secondary Scene that provides movement controls: */
@@ -217,31 +206,31 @@ window.Assignment_One_Scene = window.classes.Assignment_One_Scene = class Assign
 
     this.set_colors();
 
-
     /******************************************* parameters of box rotation *******************************************/
     /* Because we sweep from 0 to max angle as a function of time, we get a nice swaying motion */
     this.maxAngle = -.04*Math.PI;
     this.hertz = 3;
     this.phase = 0;
 
-    /* booleans flipped by the buttons */
+    /**************************************** booleans flipped by the buttons ****************************************/
     this.is_swaying = true;
     this.drawing_outlines = false;
     this.extraCreditII = true;
 
-    /* my defined constants */
+    /********************************************** my defined constants **********************************************/
     this.zAxis = Vec.of( 0, 0, 1 );
     this.extraCreditIIScale = Vec.of( 1, 1.5, 1 );
 
-    /* debugging constants */
+    /********************************************** debugging constants **********************************************/
     this.prevTime = 0;
     this.tick = false;
   }
 
+  /* set this.boxColors to these 8 colors, in a random order */
   set_colors()
   {
     /* colors */
-    this.colors = [
+    let colors = [
       Color.of( 0.9,0.9,0.9,1 ), /*white*/
       Color.of( 1,0,0,1 ), /*red*/
       Color.of( 1,0.647,0,1 ), /*orange*/
@@ -254,10 +243,10 @@ window.Assignment_One_Scene = window.classes.Assignment_One_Scene = class Assign
 
     this.boxColors = Array();
     for (let i = 0; i < 8; i++ ) {
-      let randomIndex = Math.floor(Math.random() * this.colors.length);
-      this.boxColors.push(this.colors[randomIndex]);
-      this.colors[randomIndex] = this.colors[this.colors.length-1];
-      this.colors.pop();
+      let randomIndex = Math.floor(Math.random() * colors.length);
+      this.boxColors.push(colors[randomIndex]);
+      colors[randomIndex] = colors[colors.length-1];
+      colors.pop();
     }
 
   }
@@ -270,18 +259,18 @@ window.Assignment_One_Scene = window.classes.Assignment_One_Scene = class Assign
 
     /* toggle your outline on and off */
     this.key_triggered_button( "Outline", [ "o" ], () => {
-        this.drawing_outlines = !this.drawing_outlines;
-        } );
+      this.drawing_outlines = !this.drawing_outlines;
+    } );
 
     /* toggle swaying on and off */
     this.key_triggered_button( "Sit still", [ "m" ], () => {
-        this.is_swaying = !this.is_swaying;
-        } );
+      this.is_swaying = !this.is_swaying;
+    } );
 
     /* toggle extra credit scaling on and off */
     this.key_triggered_button( "Extra credit part II", [ "x" ], () => {
-        this.extraCreditII = !this.extraCreditII;
-        } );
+      this.extraCreditII = !this.extraCreditII;
+    } );
   }
 
   draw_box_stack (graphics_state)
@@ -293,8 +282,8 @@ window.Assignment_One_Scene = window.classes.Assignment_One_Scene = class Assign
      * Scale your boxes so that instead of being unit cubes, they are stretched to 1.5x their length only along the Y axis */
     if (this.extraCreditII) {
       model_transform = model_transform
-        .times( Mat4.translation( this.extraCreditIIScale.minus(Vec.of(1, 1, 1)) ) ) /* hold the bottom left corner constant */
-        .times( Mat4.scale(this.extraCreditIIScale) );
+          .times( Mat4.translation( this.extraCreditIIScale.minus(Vec.of(1, 1, 1)) ) ) /* hold the bottom left corner constant */
+          .times( Mat4.scale(this.extraCreditIIScale) );
     }
 
     /******************** calculate how many radians we should rotate *******************/
@@ -320,12 +309,12 @@ window.Assignment_One_Scene = window.classes.Assignment_One_Scene = class Assign
     for (let boxNum = 1; boxNum < 8; boxNum++) {
       /* find the transform of the next box */
       model_transform = model_transform
-        /* move the next box up */
-        .times( Mat4.translation(box_height_up) )
-        /* then rotate it from the bottom right on the z axis */
-        .times( Mat4.translation(center_to_bottom_right) )
-        .times( Mat4.rotation(rad, this.zAxis) )
-        .times( Mat4.translation(bottom_right_to_center) );
+          /* move the next box up */
+          .times( Mat4.translation(box_height_up) )
+          /* then rotate it from the bottom right on the z axis */
+          .times( Mat4.translation(center_to_bottom_right) )
+          .times( Mat4.rotation(rad, this.zAxis) )
+          .times( Mat4.translation(bottom_right_to_center) );
 
       /* draw the next box */
       if (this.drawing_outlines) {
