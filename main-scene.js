@@ -88,12 +88,39 @@ window.Cube_Outline = window.classes.Cube_Outline = class Cube_Outline extends S
     /* Name the values we'll define per each vertex. */
     super( "positions", "colors" );
 
-    /* TODO (Requirement 5). When a set of lines is used in graphics, you should think of the list entries as broken
-     * down into pairs; each pair of vertices will be drawn as a line segment. */
-
     /* Do this so we won't need to define "this.indices". */
     this.indexed = false;
+
+    /* each pair of vertices will be drawn as a line segment. We want a line for each corner of the cube */
+    let corners = Array(8);
+    for (let i = 0; i < corners.length; i++) {
+      corners[i] = new Vec([
+        i&1 ? -1 : 1,
+        i&2 ? -1 : 1,
+        i&4 ? -1 : 1,
+      ]);
+    }
+
+    this.positions.push(
+      corners[0], corners[1],
+      corners[0], corners[2],
+      corners[0], corners[4],
+      corners[1], corners[3],
+      corners[1], corners[5],
+      corners[2], corners[3],
+      corners[2], corners[6],
+      corners[3], corners[7],
+      corners[4], corners[5],
+      corners[4], corners[6],
+      corners[5], corners[7],
+      corners[6], corners[7]
+    );
+
+    /* for each item in the this.positions array, add a whiteColor to the this.colors array */
+    let whiteColor = Color.of(1, 1, 1, 1);
+    this.colors = this.positions.map(i => whiteColor);
   }
+
 }
 
 window.Cube_Single_Strip = window.classes.Cube_Single_Strip = class Cube_Single_Strip extends Shape
@@ -138,34 +165,49 @@ window.Assignment_One_Scene = window.classes.Assignment_One_Scene = class Assign
 
     this.set_colors();
 
+
+    /******************************************* parameters of box rotation *******************************************/
+    /* Because we sweep from 0 to max angle as a function of time, we get a nice swaying motion */
+    this.maxAngle = -.04*Math.PI;
+    this.hertz = 3;
+    this.phase = 0;
+
+    /* booleans flipped by the buttons */
+    this.is_swaying = true;
+    this.drawing_outlines = false;
+    this.extraCreditII = true;
+
     /* my defined constants */
-    this.xAxis = Vec.of( 1,0,0 );
-    this.yAxis = Vec.of( 0,1,0 );
-    this.zAxis = Vec.of( 0,0,1 );
+    this.zAxis = Vec.of( 0, 0, 1 );
+    this.extraCreditIIScale = Vec.of( 1, 1.5, 1 );
 
     /* debugging constants */
     this.prevTime = 0;
     this.tick = false;
   }
 
-
   set_colors()
   {
-    this.colors = {};
-    this.colors.red = Color.of( 1,0,0,1 );
-    this.colors.green = Color.of( 0,1,0,1 );
-    this.colors.blue = Color.of( 0,0,1,1 );
-    this.colors.yellow = Color.of( 1,1,0,1 );
-    this.colors.purple = Color.of( 1,0,1,1 );
-    this.colors.orange = Color.of( 1,0.647,0,1 );
-    this.colors.white = Color.of( 1, 1, 1, 1 );
-    this.boxColors = Array();
+    /* colors */
+    this.colors = [
+      Color.of( 0.9,0.9,0.9,1 ), /*white*/
+      Color.of( 1,0,0,1 ), /*red*/
+      Color.of( 1,0.647,0,1 ), /*orange*/
+      Color.of( 1,1,0,1 ), /*yellow*/
+      Color.of( 0,1,0,1 ), /*green*/ 
+      Color.of( 0,0,1,1 ), /*blue*/
+      Color.of( 1,0,1,1 ), /*purple*/
+      Color.of( 0.588,0.294,0,1 ) /*brown*/
+    ]
 
-    this.boxColors.push(this.colors.green);
-    for (let i = 0; i < 6; i++ ) {
-      this.boxColors.push(this.randomColor());
+    this.boxColors = Array();
+    for (let i = 0; i < 8; i++ ) {
+      let randomIndex = Math.floor(Math.random() * this.colors.length);
+      this.boxColors.push(this.colors[randomIndex]);
+      this.colors[randomIndex] = this.colors[this.colors.length-1];
+      this.colors.pop();
     }
-    this.boxColors.push(this.colors.green);
+
   }
 
   /* Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements. */
@@ -174,21 +216,79 @@ window.Assignment_One_Scene = window.classes.Assignment_One_Scene = class Assign
     /* Add a button for controlling the scene. */
     this.key_triggered_button( "Change Colors", [ "c" ], this.set_colors );
 
-    /* TODO:  Requirement 5b:  Set a flag here that will toggle your outline on and off */
+    /* toggle your outline on and off */
     this.key_triggered_button( "Outline", [ "o" ], () => {
+      this.drawing_outlines = !this.drawing_outlines;
+    } );
+  
+    /* toggle swaying on and off */
+    this.key_triggered_button( "Sit still", [ "m" ], () => {
+      this.is_swaying = !this.is_swaying;
     } );
 
-    /* TODO:  Requirement 3d:  Set a flag here that will toggle your swaying motion on and off. */
-    this.key_triggered_button( "Sit still",     [ "m" ], () => {
+    this.key_triggered_button( "Extra credit part II", [ "x" ], () => {
+      this.extraCreditII = !this.extraCreditII;
     } );
   }
 
-  draw_box( graphics_state, model_transform )
+  draw_box_stack (graphics_state)
   {
-    /* TODO:  Helper function for requirement 3 (see hint). This should make changes to the model_transform matrix, draw
-     * the next box, and return the newest model_transform. */
+    /* start with the unit vector each time */
+    let model_transform = Mat4.identity();
 
-    return model_transform;
+    /* extra credit:
+     * Scale your boxes so that instead of being unit cubes, they are stretched to 1.5x their length only along the Y axis */
+    if (this.extraCreditII) {
+      model_transform = model_transform
+        .times( Mat4.translation( this.extraCreditIIScale.minus(Vec.of(1, 1, 1)) ) ) /* hold the bottom left corner constant */
+        .times( Mat4.scale(this.extraCreditIIScale) );
+    }
+
+    /******************** calculate how many radians we should rotate *******************/
+    /* if hertz == 1, then deltaTime++ will increase the phase by 1 full period */
+    const nextPhase = this.deltaTime * Math.PI*2 * this.hertz;
+    /* only update our phase if this.is_swaying = true */
+    this.phase = (this.is_swaying) ? nextPhase : this.phase;
+
+    /* This formula is of the form `f(t) = a + a*sin(w*t)`, to sweep from 0 to 2a and back in a smooth motion */
+    const halfMaxAngle = this.maxAngle/2;
+    const rad = halfMaxAngle + halfMaxAngle*Math.sin(this.phase);
+
+    /* move each box's origin 2 units higher than the previous one. */
+    const box_height_up = [ 0, 2, 0 ];
+    /* We want our rotation to work on the bottom right of the boxes. To do so, we will translate from center to bottom right, rotate, then translate back */
+    const center_to_bottom_right = [ 1, -1, 0 ];
+    const bottom_right_to_center = center_to_bottom_right.map(num => -num);
+
+    for (let boxNum = 0; boxNum < 8; boxNum++) {
+      /* draw the next box */
+      if (this.drawing_outlines && boxNum != 0) {
+        this.shapes.outline.draw(graphics_state, model_transform, this.white, "LINES");
+      } else {
+        this.shapes.box.draw( graphics_state, model_transform, this.plastic.override({ color: this.boxColors[boxNum] }) ); 
+      }
+
+      /* find the transform of the next box */
+      model_transform = model_transform
+          /* move the next box up */
+          .times( Mat4.translation(box_height_up) )
+          /* then rotate it from the bottom right on the z axis */
+          .times( Mat4.translation(center_to_bottom_right) )
+          .times( Mat4.rotation(rad, this.zAxis) )
+          .times( Mat4.translation(bottom_right_to_center) );
+    }
+  }
+
+  debug_tickspeed(rad)
+  {
+    if (this.tick && rad < 0.9*this.maxAngle) {
+      const diff = this.deltaTime - this.prevTime;
+      console.log(`Tick speed: ${diff} (~${1/diff} Hz)`);
+      this.prevTime = this.deltaTime;
+      this.tick = false;
+    } else if (!this.tick && rad > 0.1*this.maxAngle) {
+      this.tick = true;
+    }
   }
 
   display( graphics_state )
@@ -196,59 +296,11 @@ window.Assignment_One_Scene = window.classes.Assignment_One_Scene = class Assign
     /* Use the lights stored in this.lights. */
     graphics_state.lights = this.lights;
 
-    /* get the unit vector */
-    let model_transform = Mat4.identity();
+    /* record how much time has passed in seconds, so we can use that to place shapes. */
+    this.deltaTime = graphics_state.animation_time/1000;
 
-    /* Find how much time has passed in seconds, and use that to place shapes. */
-    const deltaTime = this.deltaTime = graphics_state.animation_time/1000;
-
-    /* draw the boxes. Recall that each has height 2 before scale */
-    for (let boxNum = 0; boxNum < 8; boxNum++) {
-      /* move each box's origin 2 units higher than the previous one. */
-      const box_height_up = [ 0, 2, 0 ];
-
-      /* then, we want our rotation to work on the bottom right of the boxes. To do so, we will translate from center to bottom right, rotate, then translate back */
-      const center_to_bottom_right = [ 1, -1, 0 ];
-      const bottom_right_to_center = center_to_bottom_right.map(num => -num);
-
-      const maxAngle = -.04*Math.PI;
-      const halfMaxAnfgle = maxAngle/2;
-      const hertz = 1; //TODO set to 3 before turning in
-      const tau = Math.PI*2;
-      const rad = halfMaxAnfgle + halfMaxAnfgle*Math.sin(hertz*deltaTime*tau);
-
-      /*
-      //useful for debugging tick speed
-      if (i == 0) {
-        if (this.tick && rad < -0.12) {
-          console.log(`Tick speed: ${deltaTime - this.prevTime}`);
-          this.prevTime = deltaTime;
-          this.tick = false;
-        } else if (!this.tick && rad > -0.01) {
-          this.tick = true;
-        }
-      }
-      */
-      
-      if (boxNum != 0) {
-        model_transform = model_transform
-          .times( Mat4.translation(box_height_up) )
-          .times( Mat4.translation(center_to_bottom_right) )
-          .times( Mat4.rotation(rad, this.zAxis) )
-          .times( Mat4.translation(bottom_right_to_center) );  
-      }
-
-      this.shapes.box.draw( graphics_state, model_transform, this.plastic.override({ color: this.boxColors[boxNum] }) );      
-    }
-    
-  }
-
-  randomColor ()
-  {
-    let r = Math.random();
-    let g = Math.random();
-    let b = Math.random();
-    return Color.of( r, g, b, 1 );
+    /* draw the swaying box stack */
+    this.draw_box_stack(graphics_state);
   }
 
 }
