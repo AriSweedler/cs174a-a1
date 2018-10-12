@@ -71,27 +71,31 @@ window.Transforms_Sandbox = window.classes.Transforms_Sandbox = class Transforms
 }
 
 
-window.Cube_Outline = window.classes.Cube_Outline =
-class Cube_Outline extends Shape
-  { constructor()
-      { super( "positions", "colors" ); // Name the values we'll define per each vertex.
+window.Cube_Outline = window.classes.Cube_Outline = class Cube_Outline extends Shape
+{
+  constructor()
+  {
+    /* Name the values we'll define per each vertex. */
+    super( "positions", "colors" );
 
-        //  TODO (Requirement 5).
-                                // When a set of lines is used in graphics, you should think of the list entries as
-                                // broken down into pairs; each pair of vertices will be drawn as a line segment.
+    /* TODO (Requirement 5). When a set of lines is used in graphics, you should think of the list entries as broken
+     * down into pairs; each pair of vertices will be drawn as a line segment. */
 
-        this.indexed = false;       // Do this so we won't need to define "this.indices".
-      }
+    /* Do this so we won't need to define "this.indices". */
+    this.indexed = false;
   }
+}
 
-window.Cube_Single_Strip = window.classes.Cube_Single_Strip =
-class Cube_Single_Strip extends Shape
-  { constructor()
-      { super( "positions", "normals" );
+window.Cube_Single_Strip = window.classes.Cube_Single_Strip = class Cube_Single_Strip extends Shape
+{
+  constructor()
+  {
+    super( "positions", "normals" );
 
-        // TODO (Extra credit part I)
-      }
+    /* TODO (Extra credit part I) */
   }
+}
+
 
 window.Assignment_One_Scene = window.classes.Assignment_One_Scene =
 class Assignment_One_Scene extends Scene_Component
