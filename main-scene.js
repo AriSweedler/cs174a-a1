@@ -29,49 +29,44 @@ window.Transforms_Sandbox = window.classes.Transforms_Sandbox = class Transforms
    * matrix transforms. */
   display( graphics_state )
   {
-    /* Variable model_transform will be a temporary matrix that helps us draw most shapes. */
-    let model_transform = Mat4.identity();
-
-    /*It starts over as the identity every single frame - coordinate axes at the origin. Use the lights stored in
-     * this.lights. */
-    graphics_state.lights = this.lights;
-    /**********************************TODO code here **********************************/
-    /* From here on down it's just some example shapes drawn for you -- freely replace them with your own!  Notice the
-     * usage of the functions translation(), scale(), and rotation() to generate matrices, and the functions times(),
-     * which generates products of matrices. */
-
     /* define color constants */
     const blue = Color.of( 0,0,1,1 );
     const yellow = Color.of( 1,1,0,1 );
 
-    /* the matrix we're drawing with. Useful for drawing most shapes */
-    model_transform = model_transform.times( Mat4.translation([ 0, 3, 20 ]) );
-
-    /* Draw the top box. */
-    this.shapes.box.draw( graphics_state, model_transform, this.plastic.override({ color: yellow }) );
+    /* Use the lights stored in this.lights. */
+    graphics_state.lights = this.lights;
 
     /* Find how much time has passed in seconds, and use that to place shapes. */
-    const t = this.t = graphics_state.animation_time/1000;
+    const deltaTime = this.deltaTime = graphics_state.animation_time/1000;
 
-    /* Tweak our coordinate system downward for the next shape. */
-    model_transform = model_transform.times( Mat4.translation([ 0, -2, 0 ]) );
-    /* Draw the ball. */
-    this.shapes.ball.draw( graphics_state, model_transform, this.plastic.override({ color: blue }) );
+    /* Variable model_transform will be a temporary matrix that helps us draw most shapes. It starts over as the
+     * identity every single frame. Useful for drawing most shapes */
+    let model_transform = Mat4.identity();
 
-    /* The first line below won't execute if the button on the page has been toggled: */
+    /* From here on down it's just some example shapes drawn for you -- freely replace them with your own!  Notice the
+     * usage of the functions translation(), scale(), and rotation() to generate matrices, and the functions times(),
+     * which generates products of matrices. */
+
+    const top_box_transform = model_transform = model_transform.times( Mat4.translation([ 0, 3, 15 ]) );
+
+    /* Tweak our coordinate system downward so we can draw the next shape. */
+    const ball_transform = model_transform = model_transform.times( Mat4.translation([ 0, -2, 0 ]) );
+
     if( !this.hover ) {
-      /* Spin our coordinate frame as a function of time. */
-      model_transform = model_transform.times( Mat4.rotation( t, Vec.of( 0,1,0 ) ) )
+      /* Spin our coordinate frame around the y-axis as a function of time. (time == radians to translate by) */
+      let yAxis = Vec.of( 0,1,0 );
+      model_transform = model_transform.times( Mat4.rotation( deltaTime, yAxis ) )
     }
 
-    /* Rotate another axis by a constant value. Stretch the coordinate frame. Translate down enough for the two volumes
-     * to miss. */
-    model_transform = model_transform.times( Mat4.rotation( 1, Vec.of( 0,0,1 ) ) )
-                      .times( Mat4.scale      ([ 1,   2, 1 ]) )
-                      .times( Mat4.translation([ 0,-1.5, 0 ]) );
+    /* Rotate about z by 1 radian. (Translate cube down so it doesn't hit the sphere. Scale to make the box a rectangle.) */
+    const bottom_box_transform = model_transform = model_transform.times( Mat4.rotation( 1, Vec.of( 0,0,1 ) ) )
+            .times( Mat4.translation([ 0, -3, 0 ]) )
+            .times( Mat4.scale([ 1, 2, 1 ]) );
 
-    /* Draw the bottom box. */
-    this.shapes.box.draw( graphics_state, model_transform, this.plastic.override({ color: yellow }) );
+    /* Draw */
+    this.shapes.box.draw( graphics_state, top_box_transform, this.plastic.override({ color: yellow }) );
+    this.shapes.ball.draw( graphics_state, ball_transform, this.plastic.override({ color: blue }) );
+    this.shapes.box.draw( graphics_state, bottom_box_transform, this.plastic.override({ color: yellow }) );
   }
 }
 
