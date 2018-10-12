@@ -17,6 +17,7 @@ window.Cube = window.classes.Cube = class Cube extends Shape
                                       [-1,0,0], [-1,0,0], [1,0,0],  [1,0,0],  [1,0,0], [1,0,0], [0,0,1], [0,0,1], [0,0,1],   [0,0,1],
                                       [0,0,-1], [0,0,-1], [0,0,-1], [0,0,-1] ) );
 
+
     /* Those two lists, positions and normals, fully describe the "vertices".  What's the "i"th vertex?  Simply the
      * combined data you get if you look up index "i" of both lists above -- a position and a normal vector, together.
      * Now let's tell it how to connect vertex entries into triangles.  Every three indices in this list makes one
@@ -66,8 +67,8 @@ window.Transforms_Sandbox = window.classes.Transforms_Sandbox = class Transforms
 
     /* Rotate about z by 1 radian. (Translate cube down so it doesn't hit the sphere. Scale to make the box a rectangle.) */
     const bottom_box_transform = model_transform = model_transform.times( Mat4.rotation( 1, Vec.of( 0,0,1 ) ) )
-            .times( Mat4.translation([ 0, -3, 0 ]) )
-            .times( Mat4.scale([ 1, 2, 1 ]) );
+      .times( Mat4.translation([ 0, -3, 0 ]) )
+      .times( Mat4.scale([ 1, 2, 1 ]) );
 
     /* Draw */
     for (let i = 0; i < 10; i++) {
@@ -95,26 +96,26 @@ window.Cube_Outline = window.classes.Cube_Outline = class Cube_Outline extends S
     let corners = Array(8);
     for (let i = 0; i < corners.length; i++) {
       corners[i] = new Vec([
-        i&1 ? -1 : 1,
-        i&2 ? -1 : 1,
-        i&4 ? -1 : 1,
+          i&1 ? -1 : 1,
+          i&2 ? -1 : 1,
+          i&4 ? -1 : 1,
       ]);
     }
 
     this.positions.push(
-      corners[0], corners[1],
-      corners[0], corners[2],
-      corners[0], corners[4],
-      corners[1], corners[3],
-      corners[1], corners[5],
-      corners[2], corners[3],
-      corners[2], corners[6],
-      corners[3], corners[7],
-      corners[4], corners[5],
-      corners[4], corners[6],
-      corners[5], corners[7],
-      corners[6], corners[7]
-    );
+        corners[0], corners[1],
+        corners[0], corners[2],
+        corners[0], corners[4],
+        corners[1], corners[3],
+        corners[1], corners[5],
+        corners[2], corners[3],
+        corners[2], corners[6],
+        corners[3], corners[7],
+        corners[4], corners[5],
+        corners[4], corners[6],
+        corners[5], corners[7],
+        corners[6], corners[7]
+        );
 
     /* for each item in the this.positions array, add a whiteColor to the this.colors array */
     let whiteColor = Color.of(1, 1, 1, 1);
@@ -129,8 +130,59 @@ window.Cube_Single_Strip = window.classes.Cube_Single_Strip = class Cube_Single_
   {
     super( "positions", "normals" );
 
-    /* TODO (Extra credit part I) */
+    /* each pair of vertices will be drawn as a line segment. We want a line for each corner of the cube */
+    let corners = Array(8);
+    for (let i = 0; i < corners.length; i++) {
+      corners[i] = new Vec([
+          i&1 ? -1 : 1,
+          i&2 ? -1 : 1,
+          i&4 ? -1 : 1,
+      ]);
+    }
+
+    let norm_face = Vec.cast([1,0,0], [0,1,0], [0,0,1], [-1,0,0], [0,-1,0], [0,0,-1]);
+    this.positions.push(
+        corners[0], corners[6], corners[2],
+        corners[0], corners[6], corners[4],
+
+        corners[0], corners[5], corners[1],
+        corners[0], corners[5], corners[4],
+
+        corners[0], corners[3], corners[1],
+        corners[0], corners[3], corners[2],
+
+        corners[7], corners[1], corners[3],
+        corners[7], corners[1], corners[5],
+
+        corners[7], corners[2], corners[3],
+        corners[7], corners[2], corners[6],
+
+        corners[7], corners[4], corners[5],
+        corners[7], corners[4], corners[6],
+        );
+
+    for (let face = 0; face < 6; face++) {
+      for (let v = 0; v < 6; v++) {
+        this.normals.push(norm_face[face]);
+      }
+    }
+
+    /* Those two lists, positions and normals, fully describe the "vertices".  What's the "i"th vertex?  Simply the
+     * combined data you get if you look up index "i" of both lists above -- a position and a normal vector, together.
+     * Now let's tell it how to connect vertex entries into triangles.  Every three indices in this list makes one
+     * triangle: */
+    //     this.indices.push( 0, 1, 2, 1, 3, 2, 4, 5, 6, 5, 7, 6, 8, 9, 10, 9, 11, 10, 12, 13, 14, 13, 15, 14, 16, 17, 18, 17,
+    //         19, 18, 20, 21, 22, 21, 23, 22 );
+    /* It stinks to manage arrays this big.  Later we'll show code that generates these same cube vertices more
+     * automatically. */
+
+    /* Do this so we won't need to define "this.indices". */
+    this.indexed = false;
+
+
+
   }
+
 }
 
 /* The scene begins by requesting the camera, shapes, and materials it will need. */
@@ -194,7 +246,7 @@ window.Assignment_One_Scene = window.classes.Assignment_One_Scene = class Assign
       Color.of( 1,0,0,1 ), /*red*/
       Color.of( 1,0.647,0,1 ), /*orange*/
       Color.of( 1,1,0,1 ), /*yellow*/
-      Color.of( 0,1,0,1 ), /*green*/ 
+      Color.of( 0,1,0,1 ), /*green*/
       Color.of( 0,0,1,1 ), /*blue*/
       Color.of( 1,0,1,1 ), /*purple*/
       Color.of( 0.588,0.294,0,1 ) /*brown*/
@@ -218,17 +270,18 @@ window.Assignment_One_Scene = window.classes.Assignment_One_Scene = class Assign
 
     /* toggle your outline on and off */
     this.key_triggered_button( "Outline", [ "o" ], () => {
-      this.drawing_outlines = !this.drawing_outlines;
-    } );
-  
+        this.drawing_outlines = !this.drawing_outlines;
+        } );
+
     /* toggle swaying on and off */
     this.key_triggered_button( "Sit still", [ "m" ], () => {
-      this.is_swaying = !this.is_swaying;
-    } );
+        this.is_swaying = !this.is_swaying;
+        } );
 
+    /* toggle extra credit scaling on and off */
     this.key_triggered_button( "Extra credit part II", [ "x" ], () => {
-      this.extraCreditII = !this.extraCreditII;
-    } );
+        this.extraCreditII = !this.extraCreditII;
+        } );
   }
 
   draw_box_stack (graphics_state)
@@ -260,23 +313,29 @@ window.Assignment_One_Scene = window.classes.Assignment_One_Scene = class Assign
     const center_to_bottom_right = [ 1, -1, 0 ];
     const bottom_right_to_center = center_to_bottom_right.map(num => -num);
 
-    for (let boxNum = 0; boxNum < 8; boxNum++) {
-      /* draw the next box */
-      if (this.drawing_outlines && boxNum != 0) {
-        this.shapes.outline.draw(graphics_state, model_transform, this.white, "LINES");
-      } else {
-        this.shapes.box.draw( graphics_state, model_transform, this.plastic.override({ color: this.boxColors[boxNum] }) ); 
-      }
+    /* extraCreditI: draw the first box with triangle strips */
+    this.shapes.strip.draw (graphics_state, model_transform, this.plastic.override({ color: this.boxColors[0] }), "TRIANGLE_STRIP");
 
+    /* draw the rest of the boxes */
+    for (let boxNum = 1; boxNum < 8; boxNum++) {
       /* find the transform of the next box */
       model_transform = model_transform
-          /* move the next box up */
-          .times( Mat4.translation(box_height_up) )
-          /* then rotate it from the bottom right on the z axis */
-          .times( Mat4.translation(center_to_bottom_right) )
-          .times( Mat4.rotation(rad, this.zAxis) )
-          .times( Mat4.translation(bottom_right_to_center) );
+        /* move the next box up */
+        .times( Mat4.translation(box_height_up) )
+        /* then rotate it from the bottom right on the z axis */
+        .times( Mat4.translation(center_to_bottom_right) )
+        .times( Mat4.rotation(rad, this.zAxis) )
+        .times( Mat4.translation(bottom_right_to_center) );
+
+      /* draw the next box */
+      if (this.drawing_outlines) {
+        this.shapes.outline.draw( graphics_state, model_transform, this.white, "LINES");
+      } else {
+        this.shapes.box.draw( graphics_state, model_transform, this.plastic.override({ color: this.boxColors[boxNum] }) );
+      }
+
     }
+
   }
 
   debug_tickspeed(rad)
