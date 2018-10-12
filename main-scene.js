@@ -137,7 +137,17 @@ window.Assignment_One_Scene = window.classes.Assignment_One_Scene = class Assign
     this.lights = [ new Light( Vec.of( 0,5,5,1 ), Color.of( 1, .4, 1, 1 ), 100000 ) ];
 
     this.set_colors();
+
+    /* my defined constants */
+    this.xAxis = Vec.of( 1,0,0 );
+    this.yAxis = Vec.of( 0,1,0 );
+    this.zAxis = Vec.of( 0,0,1 );
+
+    /* debugging constants */
+    this.prevTime = 0;
+    this.tick = false;
   }
+
 
   set_colors()
   {
@@ -189,10 +199,46 @@ window.Assignment_One_Scene = window.classes.Assignment_One_Scene = class Assign
     /* get the unit vector */
     let model_transform = Mat4.identity();
 
+    /* Find how much time has passed in seconds, and use that to place shapes. */
+    const deltaTime = this.deltaTime = graphics_state.animation_time/1000;
+
     /* draw the boxes. Recall that each has height 2 before scale */
-    for (let i = 0; i < 8; i++) {
-      model_transform = model_transform.times( Mat4.translation([ 0, 2, 0 ]) );
-      this.shapes.box.draw( graphics_state, model_transform, this.plastic.override({ color: this.boxColors[i] }) );      
+    for (let boxNum = 0; boxNum < 8; boxNum++) {
+      /* move each box's origin 2 units higher than the previous one. */
+      const box_height_up = [ 0, 2, 0 ];
+
+      /* then, we want our rotation to work on the bottom right of the boxes. To do so, we will translate from center to bottom right, rotate, then translate back */
+      const center_to_bottom_right = [ 1, -1, 0 ];
+      const bottom_right_to_center = center_to_bottom_right.map(num => -num);
+
+      const maxAngle = -.04*Math.PI;
+      const halfMaxAnfgle = maxAngle/2;
+      const hertz = 1; //TODO set to 3 before turning in
+      const tau = Math.PI*2;
+      const rad = halfMaxAnfgle + halfMaxAnfgle*Math.sin(hertz*deltaTime*tau);
+
+      /*
+      //useful for debugging tick speed
+      if (i == 0) {
+        if (this.tick && rad < -0.12) {
+          console.log(`Tick speed: ${deltaTime - this.prevTime}`);
+          this.prevTime = deltaTime;
+          this.tick = false;
+        } else if (!this.tick && rad > -0.01) {
+          this.tick = true;
+        }
+      }
+      */
+      
+      if (boxNum != 0) {
+        model_transform = model_transform
+          .times( Mat4.translation(box_height_up) )
+          .times( Mat4.translation(center_to_bottom_right) )
+          .times( Mat4.rotation(rad, this.zAxis) )
+          .times( Mat4.translation(bottom_right_to_center) );  
+      }
+
+      this.shapes.box.draw( graphics_state, model_transform, this.plastic.override({ color: this.boxColors[boxNum] }) );      
     }
     
   }
