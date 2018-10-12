@@ -22,36 +22,59 @@ class Cube extends Shape                 // Here's a complete, working example o
       }
   }
 
-window.Transforms_Sandbox = window.classes.Transforms_Sandbox =
-class Transforms_Sandbox extends Tutorial_Animation   // This subclass of some other Scene overrides the display() function.  By only
-{ display( graphics_state )                           // exposing that one function, which draws everything, this creates a very small code
-                                                      // sandbox for editing a simple scene, and for experimenting with matrix transforms.
-    { let model_transform = Mat4.identity();      // Variable model_transform will be a temporary matrix that helps us draw most shapes.
-                                                  // It starts over as the identity every single frame - coordinate axes at the origin.
-      graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
-      /**********************************
-      Start coding down here!!!!
-      **********************************/         // From here on down it's just some example shapes drawn for you -- freely replace them
-                                                  // with your own!  Notice the usage of the functions translation(), scale(), and rotation()
-                                                  // to generate matrices, and the functions times(), which generates products of matrices.
+window.Transforms_Sandbox = window.classes.Transforms_Sandbox = class Transforms_Sandbox extends Tutorial_Animation
+{
+  /* This subclass of some other Scene overrides the display() function.  By only exposing that one function, which
+   * draws everything, this creates a very small code sandbox for editing a simple scene, and for experimenting with
+   * matrix transforms. */
+  display( graphics_state )
+  {
+    /* Variable model_transform will be a temporary matrix that helps us draw most shapes. */
+    let model_transform = Mat4.identity();
 
-      const blue = Color.of( 0,0,1,1 ), yellow = Color.of( 1,1,0,1 );
-      model_transform = model_transform.times( Mat4.translation([ 0, 3, 20 ]) );
-      this.shapes.box.draw( graphics_state, model_transform, this.plastic.override({ color: yellow }) );   // Draw the top box.
+    /*It starts over as the identity every single frame - coordinate axes at the origin. Use the lights stored in
+     * this.lights. */
+    graphics_state.lights = this.lights;
+    /**********************************TODO code here **********************************/
+    /* From here on down it's just some example shapes drawn for you -- freely replace them with your own!  Notice the
+     * usage of the functions translation(), scale(), and rotation() to generate matrices, and the functions times(),
+     * which generates products of matrices. */
 
-      const t = this.t = graphics_state.animation_time/1000;     // Find how much time has passed in seconds, and use that to place shapes.
+    /* define color constants */
+    const blue = Color.of( 0,0,1,1 );
+    const yellow = Color.of( 1,1,0,1 );
 
-      model_transform = model_transform.times( Mat4.translation([ 0, -2, 0 ]) );  // Tweak our coordinate system downward for the next shape.
-      this.shapes.ball.draw( graphics_state, model_transform, this.plastic.override({ color: blue }) );    // Draw the ball.
+    /* the matrix we're drawing with. Useful for drawing most shapes */
+    model_transform = model_transform.times( Mat4.translation([ 0, 3, 20 ]) );
 
-      if( !this.hover )     // The first line below won't execute if the button on the page has been toggled:
-        model_transform = model_transform.times( Mat4.rotation( t, Vec.of( 0,1,0 ) ) )  // Spin our coordinate frame as a function of time.
-      model_transform   = model_transform.times( Mat4.rotation( 1, Vec.of( 0,0,1 ) ) )  // Rotate another axis by a constant value.
-                                         .times( Mat4.scale      ([ 1,   2, 1 ]) )      // Stretch the coordinate frame.
-                                         .times( Mat4.translation([ 0,-1.5, 0 ]) );     // Translate down enough for the two volumes to miss.
-      this.shapes.box.draw( graphics_state, model_transform, this.plastic.override({ color: yellow }) );   // Draw the bottom box.
+    /* Draw the top box. */
+    this.shapes.box.draw( graphics_state, model_transform, this.plastic.override({ color: yellow }) );
+
+    /* Find how much time has passed in seconds, and use that to place shapes. */
+    const t = this.t = graphics_state.animation_time/1000;
+
+    /* Tweak our coordinate system downward for the next shape. */
+    model_transform = model_transform.times( Mat4.translation([ 0, -2, 0 ]) );
+    /* Draw the ball. */
+    this.shapes.ball.draw( graphics_state, model_transform, this.plastic.override({ color: blue }) );
+
+    /* The first line below won't execute if the button on the page has been toggled: */
+    if( !this.hover ) {
+      /* Spin our coordinate frame as a function of time. */
+      model_transform = model_transform.times( Mat4.rotation( t, Vec.of( 0,1,0 ) ) )
     }
+
+    /* Rotate another axis by a constant value. Stretch the coordinate frame. Translate down enough for the two volumes
+     * to miss. */
+    model_transform = model_transform.times( Mat4.rotation( 1, Vec.of( 0,0,1 ) ) )
+                      .times( Mat4.scale      ([ 1,   2, 1 ]) )
+                      .times( Mat4.translation([ 0,-1.5, 0 ]) );
+
+    /* Draw the bottom box. */
+    this.shapes.box.draw( graphics_state, model_transform, this.plastic.override({ color: yellow }) );
+  }
 }
+
 
 window.Cube_Outline = window.classes.Cube_Outline =
 class Cube_Outline extends Shape
