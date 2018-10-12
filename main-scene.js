@@ -81,7 +81,6 @@ window.Transforms_Sandbox = window.classes.Transforms_Sandbox = class Transforms
   }
 }
 
-
 window.Cube_Outline = window.classes.Cube_Outline = class Cube_Outline extends Shape
 {
   constructor()
@@ -107,9 +106,8 @@ window.Cube_Single_Strip = window.classes.Cube_Single_Strip = class Cube_Single_
   }
 }
 
-
-window.Assignment_One_Scene = window.classes.Assignment_One_Scene = class Assignment_One_Scene extends Scene_Component
 /* The scene begins by requesting the camera, shapes, and materials it will need. */
+window.Assignment_One_Scene = window.classes.Assignment_One_Scene = class Assignment_One_Scene extends Scene_Component
 {
   /* First, include a secondary Scene that provides movement controls: */
   constructor( context, control_box )
@@ -143,8 +141,21 @@ window.Assignment_One_Scene = window.classes.Assignment_One_Scene = class Assign
 
   set_colors()
   {
-    /* TODO:  Create a class member variable to store your cube's colors. */
+    this.colors = {};
+    this.colors.red = Color.of( 1,0,0,1 );
+    this.colors.green = Color.of( 0,1,0,1 );
+    this.colors.blue = Color.of( 0,0,1,1 );
+    this.colors.yellow = Color.of( 1,1,0,1 );
+    this.colors.purple = Color.of( 1,0,1,1 );
+    this.colors.orange = Color.of( 1,0.647,0,1 );
+    this.colors.white = Color.of( 1, 1, 1, 1 );
+    this.boxColors = Array();
 
+    this.boxColors.push(this.colors.green);
+    for (let i = 0; i < 6; i++ ) {
+      this.boxColors.push(this.randomColor());
+    }
+    this.boxColors.push(this.colors.green);
   }
 
   /* Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements. */
@@ -159,7 +170,6 @@ window.Assignment_One_Scene = window.classes.Assignment_One_Scene = class Assign
 
     /* TODO:  Requirement 3d:  Set a flag here that will toggle your swaying motion on and off. */
     this.key_triggered_button( "Sit still",     [ "m" ], () => {
-
     } );
   }
 
@@ -176,9 +186,23 @@ window.Assignment_One_Scene = window.classes.Assignment_One_Scene = class Assign
     /* Use the lights stored in this.lights. */
     graphics_state.lights = this.lights;
 
+    /* get the unit vector */
     let model_transform = Mat4.identity();
 
-    /* TODO:  Draw your entire scene here.  Use this.draw_box( graphics_state, model_transform ) to call your helper. */
+    /* draw the boxes. Recall that each has height 2 before scale */
+    for (let i = 0; i < 8; i++) {
+      model_transform = model_transform.times( Mat4.translation([ 0, 2, 0 ]) );
+      this.shapes.box.draw( graphics_state, model_transform, this.plastic.override({ color: this.boxColors[i] }) );      
+    }
+    
+  }
+
+  randomColor ()
+  {
+    let r = Math.random();
+    let g = Math.random();
+    let b = Math.random();
+    return Color.of( r, g, b, 1 );
   }
 
 }
