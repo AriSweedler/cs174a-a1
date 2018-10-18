@@ -81,7 +81,7 @@ window.Cube_Single_Strip = window.classes.Cube_Single_Strip = class Cube_Single_
     /* Do this so we won't need to define "this.indices". */
     this.indexed = false;
 
-    /* each triplet of vertices will be drawn as a triangle. We want a pair of triangles for each face of the cube */
+    /* We want a vertex for each corner of the cube */
     let corners = Array(8);
     for (let i = 0; i < corners.length; i++) {
       corners[i] = new Vec([
@@ -91,31 +91,27 @@ window.Cube_Single_Strip = window.classes.Cube_Single_Strip = class Cube_Single_
       ]);
     }
 
-    let norm_face = Vec.cast([1,0,0], [0,1,0], [0,0,1], [-1,0,0], [0,-1,0], [0,0,-1]);
+    /* from https://stackoverflow.com/questions/28375338/cube-using-single-gl-triangle-strip#38855946 */
+    /* MY corners go 0,1,5,4 2,3,7,6  theirs go 4,3,8,7 2,1,5,6 */
     this.positions.push(
-        corners[0], corners[6], corners[2],
-        corners[0], corners[6], corners[4],
+      corners[0], corners[1], corners[4],
+      corners[5],
+      corners[7],
+      corners[1],
+      corners[3],
+      corners[0],
+      corners[2],
+      corners[4],
+      corners[6],
+      corners[7],
+      corners[2],
+      corners[3],
+    );
 
-        corners[0], corners[5], corners[1],
-        corners[0], corners[5], corners[4],
-
-        corners[0], corners[3], corners[1],
-        corners[0], corners[3], corners[2],
-
-        corners[7], corners[1], corners[3],
-        corners[7], corners[1], corners[5],
-
-        corners[7], corners[2], corners[3],
-        corners[7], corners[2], corners[6],
-
-        corners[7], corners[4], corners[5],
-        corners[7], corners[4], corners[6],
-        );
-
-    for (let face = 0; face < 6; face++) {
-      for (let v = 0; v < 6; v++) {
-        this.normals.push(norm_face[face]);
-      }
+    /* have each normal point away from 0, 0, 0 - conveniently the same direction as the point's vector */
+    for (let i = 0; i < this.positions.length; i++) {
+      let pt = this.positions[i];
+      this.normals.push( new Vec([ pt[0], pt[1], pt[2] ]));
     }
   }
 }
