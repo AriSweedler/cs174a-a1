@@ -132,7 +132,9 @@ window.Transforms_Sandbox = window.classes.Transforms_Sandbox = class Transforms
     graphics_state.lights = this.lights;
 
     /* Find how much time has passed in seconds, and use that to place shapes. */
-    const deltaTime = this.deltaTime = graphics_state.animation_time/1000;
+    const recordedTime = graphics_state.animation_time/1000;
+    this.deltaTime = recordedTime - this.totalTime;
+    const totalTime = this.totalTime = recordedTime;
 
     /* Variable model_transform will be a temporary matrix that helps us draw most shapes. It starts over as the
      * identity every single frame. Useful for drawing most shapes */
@@ -150,7 +152,7 @@ window.Transforms_Sandbox = window.classes.Transforms_Sandbox = class Transforms
     if( !this.hover ) {
       /* Spin our coordinate frame around the y-axis as a function of time. (time == radians to translate by) */
       let yAxis = Vec.of( 0,1,0 );
-      model_transform = model_transform.times( Mat4.rotation( deltaTime, yAxis ) )
+      model_transform = model_transform.times( Mat4.rotation( totalTime, yAxis ) )
     }
 
     /* Rotate about z by 1 radian. (Translate cube down so it doesn't hit the sphere. Scale to make the box a rectangle.) */
@@ -204,21 +206,19 @@ window.Assignment_One_Scene = window.classes.Assignment_One_Scene = class Assign
 
     /******************************************* parameters of box rotation *******************************************/
     /* Because we sweep from 0 to max angle as a function of time, we get a nice swaying motion */
-    this.maxAngle = -.04*Math.PI;
-    this.hertz = 3;
+    this.maxAngle = -0.08*Math.PI; //turn in at -.04*Math.PI
+    this.hertz = 1; //turn in at 3
     this.phase = 0;
 
     /**************************************** booleans flipped by the buttons ****************************************/
     this.is_swaying = true;
     this.drawing_outlines = false;
-    this.extraCreditII = true;
+    this.extraCreditII = false;
 
     /********************************************** my defined constants **********************************************/
     this.zAxis = Vec.of( 0, 0, 1 );
     this.extraCreditIIScale = Vec.of( 1, 1.5, 1 );
-
-    /********************************************** debugging constants **********************************************/
-    this.prevTime = 0;
+    this.totalTime = 0;
     this.tick = false;
   }
 
@@ -264,8 +264,30 @@ window.Assignment_One_Scene = window.classes.Assignment_One_Scene = class Assign
     } );
 
     /* toggle extra credit scaling on and off */
+    this.new_line();
     this.key_triggered_button( "Extra credit part II", [ "x" ], () => {
       this.extraCreditII = !this.extraCreditII;
+    } );
+
+    /* change the max angle */
+    this.new_line();
+    this.key_triggered_button( "max angle-", [ "k" ], () => {
+      this.maxAngle += 0.01
+    } );
+    this.live_string( box => { box.textContent = "max angle: " + (-1*this.maxAngle.toFixed(2)) } );
+    this.key_triggered_button( "max angle+", [ "l" ], () => {
+      this.maxAngle -= 0.01;
+    } );
+
+    /* change the hertz */
+    this.new_line();
+    this.key_triggered_button( "hertz-", [ "[" ], () => {
+      this.hertz -= 0.1;
+      if (this.hertz < 0) this.hertz = 0;
+    } );
+    this.live_string( box => { box.textContent = "Hertz: " + this.hertz.toFixed(1) } );
+    this.key_triggered_button( "hertz+", [ "]" ], () => {
+      this.hertz += 0.1;
     } );
   }
 
@@ -284,9 +306,9 @@ window.Assignment_One_Scene = window.classes.Assignment_One_Scene = class Assign
 
     /******************** calculate how many radians we should rotate *******************/
     /* if hertz == 1, then deltaTime++ will increase the phase by 1 full period */
-    const nextPhase = this.deltaTime * Math.PI*2 * this.hertz;
+    const additionalPhase = (this.is_swaying) ? (this.deltaTime * Math.PI*2 * this.hertz) : 0;
     /* only update our phase if this.is_swaying = true */
-    this.phase = (this.is_swaying) ? nextPhase : this.phase;
+    this.phase += additionalPhase;
 
     /* This formula is of the form `f(t) = a + a*sin(w*t)`, to sweep from 0 to 2a and back in a smooth motion */
     const halfMaxAngle = this.maxAngle/2;
@@ -326,9 +348,9 @@ window.Assignment_One_Scene = window.classes.Assignment_One_Scene = class Assign
   debug_tickspeed(rad)
   {
     if (this.tick && rad < 0.9*this.maxAngle) {
-      const diff = this.deltaTime - this.prevTime;
+      const diff = this.totalTime - this.prevTime;
       console.log(`Tick speed: ${diff} (~${1/diff} Hz)`);
-      this.prevTime = this.deltaTime;
+      this.prevTime = this.totalTime;
       this.tick = false;
     } else if (!this.tick && rad > 0.1*this.maxAngle) {
       this.tick = true;
@@ -341,7 +363,9 @@ window.Assignment_One_Scene = window.classes.Assignment_One_Scene = class Assign
     graphics_state.lights = this.lights;
 
     /* record how much time has passed in seconds, so we can use that to place shapes. */
-    this.deltaTime = graphics_state.animation_time/1000;
+    const recordedTime = graphics_state.animation_time/1000;
+    this.deltaTime = recordedTime - this.totalTime;
+    this.totalTime = this.totalTime = recordedTime;
 
     /* draw the swaying box stack */
     this.draw_box_stack(graphics_state);
